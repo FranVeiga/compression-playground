@@ -1,4 +1,5 @@
-from misc.byte_writer import ByteWriter
+from misc.bit_reader import BitReader
+from misc.bit_writer import BitWriter
 
 
 class Node:
@@ -10,7 +11,7 @@ class Node:
     def isLeaf(self):
         return self.childs[0] == None and self.childs[1] == None
 
-    def encode(self, writer: ByteWriter):
+    def encode(self, writer: BitWriter):
         if self.isLeaf():
             writer.write_bits(1, 1)
             writer.write_bits(ord(self.char), 8)
@@ -18,6 +19,17 @@ class Node:
             writer.write_bits(0, 1)
             self.childs[0].encode(writer)
             self.childs[1].encode(writer)
+
+    @staticmethod
+    def decode(reader):
+        isLeaf = reader.read_bit()
+        if isLeaf:
+            char = reader.read_bytes().decode("ascii")
+            return Node(char, -1, (None, None))
+        else:
+            l_child = Node.decode(reader)
+            r_child = Node.decode(reader)
+            return Node(None, -1, (l_child, r_child))
 
 
 
@@ -43,11 +55,37 @@ class HuffmanTree:
                 queue.append((n.childs[0], level + 1))
             if n.childs[1] != None:
                 queue.append((n.childs[1], level + 1))
+        print("")
+
+    def construct_code(self, inverse=False):
+        code = {}
+        path = [] 
+        self._add_code(self.root, code, path, inverse)
+        return code
+
+    def _add_code(self, node, code, path, inverse):
+        if node.isLeaf():
+            value = 0
+            for i in range(len(path)):
+                value += path[len(path) - i - 1] * (2 ** i)
+            if not inverse:
+                code[node.char] = (value, len(path))
+            else:
+                code[(value, len(path))] = node.char
+            return
+        
+        self._add_code(node.childs[0], code, path + [0], inverse)
+        self._add_code(node.childs[1], code, path + [1], inverse)
 
     def encode(self):
-        writer = ByteWriter()
+        writer = BitWriter()
         self.root.encode(writer)
         zero_padding = writer.flush_buffer()
         return (writer.get_bytes(), zero_padding)
+
+    @staticmethod
+    def decode(input: bytes):
+        reader = BitReader(input)
+        return HuffmanTree(Node.decode(reader))
 
 

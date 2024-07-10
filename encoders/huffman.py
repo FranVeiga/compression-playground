@@ -1,6 +1,6 @@
 from io import TextIOWrapper, BufferedWriter
 from typing import Dict
-from misc.byte_writer import ByteWriter
+from misc.bit_writer import BitWriter
 from misc.huffman_tree import HuffmanTree, Node
 
 ##### HUFFMAN COMPRESSED FILE FORMAT #####
@@ -13,27 +13,27 @@ class HuffmanEncoder:
     def encode(self, input: str):
         frequencies = self.get_char_frequency(input)
         tree = self.construct_search_tree(frequencies)
-        code = self.construct_code(tree)
+        code = tree.construct_code()
 
         encoded_tree, tree_padding = tree.encode()
         tree_size = len(encoded_tree) * 8 - tree_padding
 
-        data_writer = ByteWriter()
+        data_writer = BitWriter()
+        last_char = ""
         for char in input:
+            last_char = char
             charcode, size = code[char]
             data_writer.write_bits(charcode, size)
+
         data_padding = data_writer.flush_buffer()
-        print("data padding: " + str(data_padding))
-        data = ''.join("{0:b}".format(i) for i in data_writer.get_bytes())
-        print(data)
 
         total_padding = (tree_padding + data_padding) % 8
 
-        out_writer = ByteWriter()
+        out_writer = BitWriter()
         out_writer.write_bits(tree_size, 13)
         out_writer.write_bits(total_padding, 3)
         out_writer.write_bytes(encoded_tree, zero_padding=tree_padding)
-        out_writer.write_bytes(data_writer.get_bytes())
+        out_writer.write_bytes(data_writer.get_bytes(), zero_padding=data_padding)
         out_writer.flush_buffer()
 
         return out_writer.get_bytes()
@@ -63,20 +63,4 @@ class HuffmanEncoder:
         tree = HuffmanTree(nodes[0])
         return tree
 
-    def construct_code(self, tree):
-        code = {}
-        path = [] 
-        self._add_code(tree.root, code, path)
-        return code
-
-    def _add_code(self, node, code, path):
-        if node.isLeaf():
-            value = 0
-            for i in range(len(path)):
-                value += path[len(path) - i - 1] * (2 ** i)
-            code[node.char] = (value, len(path))
-            return
-        
-        self._add_code(node.childs[0], code, path + [0])
-        self._add_code(node.childs[1], code, path + [1])
 

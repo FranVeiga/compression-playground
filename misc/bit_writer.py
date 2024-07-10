@@ -1,4 +1,4 @@
-class ByteWriter:
+class BitWriter:
     def __init__(self):
         self.out = b""
         self.buffer = 0

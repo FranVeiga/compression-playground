@@ -32,7 +32,11 @@ def main():
         encode(args.input, output_file, encoder)
 
     else:
-        print("TODO: Add decoding")
+        if not args.output:
+            raise Exception("If decoding file an output filename must be provided")
+
+        decoder = algorithms[args.algorithm].decoder
+        decode(args.input, args.output, decoder)
 
     
 
@@ -41,6 +45,15 @@ def encode(input_file, output_file, encoder):
         input = f_in.read()
 
     output = encoder.encode(input)
+
+    with open(output_file, "wb") as f_out:
+        f_out.write(output)
+
+def decode(input_file, output_file, decoder):
+    with open(input_file, "rb") as f_in:
+        input = f_in.read()
+
+    output = decoder.decode(input)
 
     with open(output_file, "wb") as f_out:
         f_out.write(output)
