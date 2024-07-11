@@ -50,7 +50,9 @@ class HuffmanDecoder():
 
         out = b""
         curr_node = tree.root
+
         while reader.bits_remaining() > padding:
+            # if somehow we get to a bit sequence not represented in the tree
             if curr_node == None:
                 raise Exception("Unknown bit sequence")
 
@@ -60,7 +62,7 @@ class HuffmanDecoder():
                 continue
 
             bit = reader.read_bit()
-            curr_node = curr_node.childs[bit]
+            curr_node = curr_node.childs[bit] # 0 is left child, 1 is right
 
         return out
         

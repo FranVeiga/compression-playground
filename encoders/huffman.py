@@ -7,6 +7,11 @@ from misc.huffman_tree import HuffmanTree, Node
 class HuffmanEncoder:
     """
     Provides utilities to perform huffman encoding on an input
+
+    Huffman encoding file format:
+        - EOF byte padding amount: 3 bits
+        - Search Tree: N bits
+        - File data: N bits
     """
 
     def encode(self, input: str):
@@ -33,12 +38,16 @@ class HuffmanEncoder:
         self.encode_data(input, code, data_writer)
         data_padding = data_writer.flush_buffer()
 
+        # Must precalculate the padding needed when the whole data is written
         total_padding = (tree_padding + data_padding) % 8
 
         out_writer = BitWriter()
+        
+        # Here, the resulting file format can be seen. See HuffmanEncoder for more info.
         out_writer.write_bits(total_padding, 3)
         out_writer.write_bytes(encoded_tree, zero_padding=tree_padding)
         out_writer.write_bytes(data_writer.get_bytes(), zero_padding=data_padding)
+
         out_writer.flush_buffer()
 
         return out_writer.get_bytes()
@@ -75,9 +84,12 @@ class HuffmanEncoder:
         - tree (HuffmanTree): The Huffman search tree
         """
 
+        # Initialize leaf nodes
         nodes = [Node(k, v, (None, None)) for (k, v) in frequencies.items()]
         nodes.sort(key=lambda n: n.weight)
         
+        # Takes the two nodes with the least weight and joins them into a new parent node.
+        # Does this until there is one node left in the array
         while len(nodes) > 1:
             left = nodes.pop(0)
             right = nodes.pop(0)
@@ -85,6 +97,7 @@ class HuffmanEncoder:
             nodes.append(head)
             nodes.sort(key=lambda n: n.weight)
 
+        # The remaining node is the tree's root
         tree = HuffmanTree(nodes[0])
         return tree
 

@@ -15,7 +15,7 @@ class BitReader():
         """
 
         self.buffer = buffer
-        self.readPos = 0
+        self._read_pos = 0
 
     def read_bit(self):
         """
@@ -25,13 +25,13 @@ class BitReader():
         - bit (Int): Can be either zero or one
         """
 
-        if self.readPos >= len(self.buffer) * 8:
+        if self._read_pos >= len(self.buffer) * 8:
             raise Exception("Failure reading bit: reached end of buffer")
             
-        curr_byte = self.buffer[self.readPos // 8]
-        mask = 2 ** (7 - self.readPos % 8)
-        bit_value = (curr_byte & mask) >> (7 - (self.readPos % 8))
-        self.readPos += 1
+        curr_byte = self.buffer[self._read_pos // 8]
+        # Get the value of the bit at readPos
+        bit_value = (curr_byte >> (7 - (self._read_pos % 8))) & 1
+        self._read_pos += 1
         return bit_value
 
     def read_bytes(self, amount=1, as_int=False):
@@ -50,25 +50,29 @@ class BitReader():
             res = 0
         else:
             res = b""
-        initial_readPos = self.readPos
+        initial_read_pos = self._read_pos
         for _ in range(amount):
             if self.bits_remaining() < 8:
-                self.readPos = initial_readPos
+                self._read_pos = initial_read_pos
                 raise Exception("Failure reading byte: reached end of buffer")
-            byte_pos = self.readPos // 8
-            two_bytes = self.buffer[byte_pos:byte_pos+2]
-            bytes_value = (two_bytes[0] << 8) + two_bytes[1]
-
-            bit_pos = self.readPos % 8
-            trunc_right = bytes_value >> (8 - bit_pos)
-            trunc_left = trunc_right - ((trunc_right >> 8) << 8)
+            start_byte_pos = self._read_pos // 8
+            end_byte_pos = (self._read_pos + 7) // 8 
+            # gets one or two bytes depending on self._read_pos
+            bytes_slice = self.buffer[start_byte_pos:end_byte_pos+1]
+            if len(bytes_slice) == 1:
+                ret_value = bytes_slice[0]
+            else:
+                # if the wanted byte crosses byte boundaries, extract it
+                bytes_value = (bytes_slice[0] << 8) + bytes_slice[1]
+                start_bit_pos = self._read_pos % 8
+                ret_value = (bytes_value >> (8 - start_bit_pos)) & 0xff
 
             if as_int:
-                res = res << 8 + trunc_left
+                res = res << 8 + ret_value
             else:
-                res += trunc_left.to_bytes(1, "big")
+                res += ret_value.to_bytes(1, "big")
 
-            self.readPos += 8
+            self._read_pos += 8
 
         return res
 
@@ -79,5 +83,5 @@ class BitReader():
         Returns:
         - bits (int): Amount of remaining bits.
         """
-        return len(self.buffer) * 8 - self.readPos
+        return len(self.buffer) * 8 - self._read_pos
 
