@@ -5,18 +5,35 @@ from algorithms import algorithms
 
 def main():
     parser = argparse.ArgumentParser(description="A program to encode files using different algorithms")
+
+    actions = parser.add_argument_group("actions")
     algorithm_options = [ "huffman" ]
-    parser.add_argument("-a", "--algorithm",
-                        help="Specifies the algorithm to use",
-                        required=True, 
+    actions.add_argument("-a", "--algorithm",
+                        help="Specifies the algorithm to use.",
                         metavar='algorithm', 
                         choices=algorithm_options
+                        
                         )
-    parser.add_argument("-d", "--decode", action="store_true")
-    parser.add_argument("input")
-    parser.add_argument("output", nargs="?")
+    actions.add_argument("-d", "--decode", action="store_true")
+    actions.add_argument("input", nargs="?", help="Input file.")
+    actions.add_argument("output", nargs="?", help="Output file.")
+
+    listings = parser.add_argument_group("listings")
+    listings.add_argument("--list-algorithms", action="store_true", help="List all available algorithms.")
 
     args = parser.parse_args()
+
+    if args.list_algorithms:
+        print("Available algorithm options are:")
+        for a in algorithm_options:
+            print(f"    - \"{a}\"")
+        return
+    if not args.algorithm: 
+        print("Must provide an algorithm. Run with --list-algorithms to see available options.")
+        return
+    if not args.input:
+        print("Must provide an input file")
+        return
 
     if not args.decode:
         if (args.output):

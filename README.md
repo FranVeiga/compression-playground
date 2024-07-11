@@ -6,6 +6,22 @@ Currently, the following algorithms are implemented:
 
 - Huffman encoding (WIP)
 
+## Usage
+
+In the project's root directory run the following:
+
+To compress a file:
+```
+$ ./main.py -a <ALGORITHM> <INPUT_FILE> [<OUTPUT_FILE>]
+```
+
+To decode a file:
+```
+$ ./main.py -d -a <ALGORITHM> <INPUT_FILE> [<OUTPUT_FILE>]
+```
+
+To see available algorithms, use `./main.py --list-algorithms`
+
 ## Why Python?
 
 Python definitely isn't the best tool for this job, but I think its readability
