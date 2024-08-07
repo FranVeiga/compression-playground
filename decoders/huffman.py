@@ -57,7 +57,7 @@ class HuffmanDecoder():
                 raise Exception("Unknown bit sequence")
 
             if curr_node.isLeaf():
-                out += curr_node.char.encode()
+                out += curr_node.charbyte
                 curr_node = tree.root
                 continue
 

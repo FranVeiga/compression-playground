@@ -14,7 +14,7 @@ class HuffmanEncoder:
         - File data: N bits
     """
 
-    def encode(self, input: str):
+    def encode(self, input: bytes):
         """
         Huffman encodes a given input. The result will include the encoded file's contents
         as well as the zero-padding size and the search tree. For more information of the
@@ -53,7 +53,7 @@ class HuffmanEncoder:
         return out_writer.get_bytes()
 
 
-    def get_char_frequency(self, input: str) -> Dict[str, int]:
+    def get_char_frequency(self, input: bytes) -> Dict[str, int]:
         """
         Returns a dictionary with the frequency of each character.
 

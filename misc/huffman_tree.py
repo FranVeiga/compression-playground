@@ -21,7 +21,7 @@ class Node:
                 from decoding an input.
             - childs (Tuple[Node, Node]): The Node's childs
         """
-        self.char = char
+        self.charbyte = char
         self.weight = weight
         self.childs = childs
 
@@ -43,7 +43,7 @@ class Node:
         """
         if self.isLeaf():
             writer.write_bits(1, 1)
-            writer.write_bits(ord(self.char), 8)
+            writer.write_bits(self.charbyte, 8)
         else:
             writer.write_bits(0, 1)
             self.childs[0].encode(writer)
@@ -63,8 +63,8 @@ class Node:
 
         isLeaf = reader.read_bit()
         if isLeaf:
-            char = reader.read_bytes().decode("ascii")
-            return Node(char, -1, (None, None))
+            charbyte = reader.read_bytes()
+            return Node(charbyte, -1, (None, None))
         else:
             l_child = Node.decode(reader)
             r_child = Node.decode(reader)
@@ -116,7 +116,7 @@ class HuffmanTree:
             if (last_level != level):
                 print("")
             last_level = level
-            char = n.char
+            char = n.charbyte
             if char == None:
                 char = "Inter"
             if char == "\n":
@@ -155,9 +155,9 @@ class HuffmanTree:
             for i in range(len(path)):
                 value += path[len(path) - i - 1] * (2 ** i)
             if not inverse:
-                code[node.char] = (value, len(path))
+                code[node.charbyte] = (value, len(path))
             else:
-                code[(value, len(path))] = node.char
+                code[(value, len(path))] = node.charbyte
             return
         
         self._add_code(node.childs[0], code, path + [0], inverse)

@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description="A program to encode files using different algorithms")
 
     actions = parser.add_argument_group("actions")
-    algorithm_options = [ "huffman" ]
+    algorithm_options = algorithms.keys()
     actions.add_argument("-a", "--algorithm",
                         help="Specifies the algorithm to use.",
                         metavar='algorithm', 
@@ -58,7 +58,7 @@ def main():
     
 
 def encode(input_file, output_file, encoder):
-    with open(input_file, "r") as f_in:
+    with open(input_file, "rb") as f_in:
         input = f_in.read()
 
     output = encoder.encode(input)
